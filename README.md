@@ -15,7 +15,7 @@ Une fois regroupé, on peut facilement en retirer les valeurs en les convertissa
 
 ## Le code
 
-Pour faire fonctionner le code, il faut connaître le fichier Linux permettant de récupérer les valeurs UART. Sur la raspberry pi 2B, la valeur est "/dev/serial0".
+Pour faire fonctionner le code, il faut connaître le fichier Linux permettant de récupérer les valeurs UART. Sur la raspberry pi 2B, la valeur est `/dev/serial0`.
 Une fois ceci fait, le programme va recevoir les données, vérifier leurs intégrités, et remplir une structure passée en paramètre que l'utilisateur pourra lire.
 
 La manette FlySky en notre possession contient 6 channels. Les valeurs 0 à 5 de notre structure suivante:
