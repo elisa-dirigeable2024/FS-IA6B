@@ -26,3 +26,5 @@ struct IBusChannels{
 `
 
 Les valeurs reçues ne sont pas mappées. 
+
+Pour avoir un exemple d'utilisation, le repository **Manoeuvre** montre un programme appelé <ins>"FS_IA6Bmain.cpp"</ins>
