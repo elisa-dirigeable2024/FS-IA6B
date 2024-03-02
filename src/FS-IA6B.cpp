@@ -1,4 +1,4 @@
-#include "FS-IA6B.h"
+#include "../headers/FS-IA6B.h"
 
 FS_IA6B::FS_IA6B(){
     // open the port in read mode only
@@ -44,17 +44,15 @@ void FS_IA6B::readValues(IBusChannels* _ch){
     // this variable will store all buffers into a single variable
     // until the next header
     std::string values;
+    // the value is read 8 by 8 but we create a larger buffer in special case
+    char buffer[256]; 
     // this variable will tell the program when to start to save the values
     // (ie when the first header appear)
     bool first_buf = false;
-
-    // TODO: find a button
-    while(_ch->channels[5] < 1990){
-        // the value is read 8 by 8 but we create a larger buffer in special case
-        char buffer[256]; 
+    while(1){
         // the function returns the number of bytes read
         ssize_t bytes_read = read(m_handle, &buffer, sizeof(buffer));
-    
+
         if(bytes_read > 0){
             // headers are 0x20 and 0x40
             // all the data have a size of 32 usually otherwise it's maybe an error
@@ -64,11 +62,16 @@ void FS_IA6B::readValues(IBusChannels* _ch){
                 else if(values.size() == 32){
                     const char* all_buf = values.c_str();
                     decodeIBusFrame(all_buf, values.size(), _ch);
-                    
+                    // for(int i = 0; i < values.size(); i++){
+                    //     std::cout << std::hex << static_cast<int>(values[i]) << " ";
+                    // }
+                    // std::cout << std::endl;
                     values.clear();
+                    break;
                 }
                 else{ // no good data
                     values.clear();
+                    break;
                 }
             }
             if(first_buf){
@@ -76,14 +79,12 @@ void FS_IA6B::readValues(IBusChannels* _ch){
                     if(buffer[j] != '\0') // we skip the terminal character
                         values.push_back(buffer[j]);
                 }
-            }
+            }          
         }
         if(bytes_read < 0){
-            // error in reading data
-        }    
+                // error in reading data
+        }  
     }
-
-    std::cout << "finished" << std::endl;
 }
 
 void FS_IA6B::decodeIBusFrame(const char* _frame, size_t _size, IBusChannels* _ch){

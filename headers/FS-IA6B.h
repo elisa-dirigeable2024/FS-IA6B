@@ -24,10 +24,8 @@ class FS_IA6B
         const char* m_device = "/dev/serial0";
         int m_handle;
 
-
     public:
         FS_IA6B();
-
         ~FS_IA6B();
 
         void readValues(IBusChannels* _ch);
