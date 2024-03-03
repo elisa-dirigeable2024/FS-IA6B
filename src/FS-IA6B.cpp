@@ -18,17 +18,7 @@ FS_IA6B::FS_IA6B(){
         throw std::runtime_error("Error while affecting the input speed");
     }
 
-    tty.c_cflag &= ~(PARENB | CSTOPB | CSIZE); // No parity, 1 stop bit, 8 data bits
-    tty.c_cflag |= CS8 | CREAD | CLOCAL;       // 8 data bits, enable reading, ignore modem control
-
-    tty.c_cflag &= ~CRTSCTS; // Disable hardware flow control
-
-    tty.c_lflag &= ~(ICANON | ECHO | ECHOE); // Non-canonical mode, disable echo and erase
-
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Disable software flow control
-
-    tty.c_cc[VMIN] = 1;  // Wait for at least 1 character
-    tty.c_cc[VTIME] = 0; // Timeout: 0 (immediate return)
+    tty.c_cflag &= ~(PARENB | CSTOPB | CS8); // No parity, 1 stop bit, 8 data bits
 
     if(tcsetattr(m_handle, TCSANOW, &tty) < 0){
         close(m_handle);
@@ -43,43 +33,38 @@ FS_IA6B::~FS_IA6B(){
 void FS_IA6B::readValues(IBusChannels* _ch){
     // this variable will store all buffers into a single variable
     // until the next header
-    std::string values;
+    
     // the value is read 8 by 8 but we create a larger buffer in special case
-    char buffer[256]; 
+    char buffer[33]; 
     // this variable will tell the program when to start to save the values
     // (ie when the first header appear)
-    bool first_buf = false;
-    while(1){
+    bool finish = false;
+    while(!finish){
         // the function returns the number of bytes read
-        ssize_t bytes_read = read(m_handle, &buffer, sizeof(buffer));
+        ssize_t bytes_read = read(m_handle, &buffer, sizeof(buffer) - 1);
 
         if(bytes_read > 0){
-            // headers are 0x20 and 0x40
-            // all the data have a size of 32 usually otherwise it's maybe an error
-            if((buffer[0] == 0x20 && buffer[1] == 0x40) || values.size() > 32){
-                if(!first_buf) // if we find the first header
-                    first_buf = true;
-                else if(values.size() == 32){
-                    const char* all_buf = values.c_str();
-                    decodeIBusFrame(all_buf, values.size(), _ch);
-                    // for(int i = 0; i < values.size(); i++){
-                    //     std::cout << std::hex << static_cast<int>(values[i]) << " ";
-                    // }
-                    // std::cout << std::endl;
-                    values.clear();
-                    break;
+            buffer[bytes_read] = '\0';
+
+            char* value = &buffer[0];
+            while(*value != '\0'){
+                if(*value != 0x20){
+                    m_values.push_back(*value);
+                    //std::cout << std::hex << static_cast<int>(*value) << std::endl;
                 }
-                else{ // no good data
-                    values.clear();
-                    break;
+                else{
+                    for(int i = 0; i < m_values.size(); i++){
+                        std::cout << std::hex << static_cast<int>(m_values[i]) << " ";
+                    }
+                    std::cout << std::endl;
+                    decodeIBusFrame(m_values.c_str(), m_values.size(), _ch);
+                    m_values.clear();
+                    m_values.push_back(*value);
+
+                    finish = true;
                 }
+                value++;
             }
-            if(first_buf){
-                for(ssize_t j = 0; j < bytes_read; j++){
-                    if(buffer[j] != '\0') // we skip the terminal character
-                        values.push_back(buffer[j]);
-                }
-            }          
         }
         if(bytes_read < 0){
                 // error in reading data

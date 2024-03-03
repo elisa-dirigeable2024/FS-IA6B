@@ -26,11 +26,10 @@ int main()
         controller.readValues(&s_channels);
         throttle_val = s_channels.channels[2];
 
-        thrust = linearScaling(throttle_val, MIN_THROTTLE_CTRL, MAX_THROTTLE_CTRL, MIN_MOTOR_SPEED, MAX_MOTOR_SPEED);
-
-        std::cout << thrust << std::endl;
+        //std::cout << throttle_val << std::endl;
     }
 
+    std::cout << "finished" << std::endl;
 
     return 0;
 }

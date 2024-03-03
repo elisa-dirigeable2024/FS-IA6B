@@ -23,6 +23,7 @@ class FS_IA6B
     private:
         const char* m_device = "/dev/serial0";
         int m_handle;
+        std::string m_values;
 
     public:
         FS_IA6B();
