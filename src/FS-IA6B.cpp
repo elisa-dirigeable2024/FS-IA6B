@@ -9,6 +9,8 @@ FS_IA6B::FS_IA6B(){
 
     // configuration of the port serie
     struct termios tty;
+    memset(&tty, 0, sizeof(tty));
+
     if(tcgetattr(m_handle, &tty) < 0){
         close(m_handle);
         throw std::runtime_error("Error while getting the attribute");
@@ -18,7 +20,23 @@ FS_IA6B::FS_IA6B(){
         throw std::runtime_error("Error while affecting the input speed");
     }
 
-    tty.c_cflag &= ~(PARENB | CSTOPB | CS8); // No parity, 1 stop bit, 8 data bits
+    // 8 bits
+    tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
+    
+    // set Parity
+    tty.c_cflag &= ~PARENB;
+
+    // set stop bits
+    tty.c_cflag &= ~CSTOPB;
+
+    // raw mode
+    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+    // disable hardware flow control
+    tty.c_cflag &= ~CRTSCTS;
+
+    // disable software flow control
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
 
     if(tcsetattr(m_handle, TCSANOW, &tty) < 0){
         close(m_handle);
@@ -34,12 +52,16 @@ void FS_IA6B::readValues(IBusChannels* _ch){
     // this variable will store all buffers into a single variable
     // until the next header
     
-    // the value is read 8 by 8 but we create a larger buffer in special case
+    // the data are sent 8 bits by 8 bits. But we use a bigger in case.
     char buffer[33]; 
     // this variable will tell the program when to start to save the values
     // (ie when the first header appear)
     bool finish = false;
+
+    std::chrono::steady_clock::time_point begin;
+    std::chrono::steady_clock::time_point end;
     while(!finish){
+        begin = std::chrono::steady_clock::now();
         // the function returns the number of bytes read
         ssize_t bytes_read = read(m_handle, &buffer, sizeof(buffer) - 1);
 
@@ -48,9 +70,8 @@ void FS_IA6B::readValues(IBusChannels* _ch){
 
             char* value = &buffer[0];
             while(*value != '\0'){
-                if(*value != 0x20){
+                if(*value != 0x20 && *(value + 1) != 0x40){
                     m_values.push_back(*value);
-                    //std::cout << std::hex << static_cast<int>(*value) << std::endl;
                 }
                 else{
                     for(int i = 0; i < m_values.size(); i++){
@@ -65,10 +86,16 @@ void FS_IA6B::readValues(IBusChannels* _ch){
                 }
                 value++;
             }
+
         }
         if(bytes_read < 0){
                 // error in reading data
         }  
+        end = std::chrono::steady_clock::now();
+        int64_t delta = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count(); // ms
+        if(delta < 7){
+            usleep(7 * std::pow(10, 3) - delta * std::pow(10, 3));
+        }
     }
 }
 

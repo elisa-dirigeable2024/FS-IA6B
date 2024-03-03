@@ -21,7 +21,7 @@ int main()
 
     unsigned int throttle_val = 0;
     unsigned int thrust = 0;
-    while(s_channels.channels[5] < 1990)
+    while(s_channels.channels[5] < 1900)
     {
         controller.readValues(&s_channels);
         throttle_val = s_channels.channels[2];
