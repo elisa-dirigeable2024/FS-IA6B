@@ -58,6 +58,7 @@ void FS_IA6B::readValues(IBusChannels* _ch){
     // (ie when the first header appear)
     bool finish = false;
 
+    // each data are sent every 7 ms. We have to track the time and sleep to wait 7 ms.
     std::chrono::steady_clock::time_point begin;
     std::chrono::steady_clock::time_point end;
     while(!finish){
@@ -74,10 +75,6 @@ void FS_IA6B::readValues(IBusChannels* _ch){
                     m_values.push_back(*value);
                 }
                 else{
-                    for(int i = 0; i < m_values.size(); i++){
-                        std::cout << std::hex << static_cast<int>(m_values[i]) << " ";
-                    }
-                    std::cout << std::endl;
                     decodeIBusFrame(m_values.c_str(), m_values.size(), _ch);
                     m_values.clear();
                     m_values.push_back(*value);
