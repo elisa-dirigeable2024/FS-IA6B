@@ -13,9 +13,14 @@ Une fois regroupé, on peut facilement en retirer les valeurs en les convertissa
 
 ![](assets/uart_fs_ia6b.jpg)
 
+### Communication avec le serveur
+Les données traitées par le programme sont ensuite envoyer sur l'exchange `amqp.topic` du serveur local à l'orange pi (`localhost`). Pour l'instant, seulement les valeurs des cannaux 0 et 2 (respectivement profondeur et thrust) sont envoyé sur l'exchange avec les binding key suivantes :
+- canal 0 (profondeur) -> angle.nnMap
+- canal 2 (thrust)     -> speed.nnMap
+
 ## Le code
 
-Pour faire fonctionner le code, il faut connaître le fichier Linux permettant de récupérer les valeurs UART. Sur la raspberry pi 2B, la valeur est `/dev/serial0`.
+Pour faire fonctionner le code, il faut connaître le fichier Linux permettant de récupérer les valeurs UART. Sur la raspberry pi 2B, la valeur est `/dev/serial0`, et sur l'orange pi zero 2W, la valeur est `/dev/ttyAS5`.
 Une fois ceci fait, le programme va recevoir les données, vérifier leurs intégrités, et remplir une structure passée en paramètre que l'utilisateur pourra lire.
 
 La manette FlySky en notre possession contient 6 channels. Les valeurs 0 à 5 de notre structure suivante:
