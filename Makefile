@@ -1,5 +1,5 @@
 CC = g++
-LIBS_FLAGS = -pthread -Wall -lpigpio -lrt
+LIBS_FLAGS = -pthread -Wall -lrt -lSimpleAmqpClient #-lpigpio
 SRC = main.cpp src/*
 TARGET = build/main
 

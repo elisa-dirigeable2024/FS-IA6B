@@ -5,11 +5,16 @@
 #include <unistd.h>
 #include <termios.h>
 
+// STD
+#include <thread>
 #include <stdexcept>
 #include <iostream>
 #include <string.h>
 #include <chrono>
 #include <math.h>
+
+//#include <sys/file.h>
+
 
 
 
@@ -24,12 +29,12 @@ struct IBusChannels{
 class FS_IA6B
 {
     private:
-        const char* m_device = "/dev/serial0";
+        const char* m_device;
         int m_handle;
         std::string m_values;
 
     public:
-        FS_IA6B();
+        FS_IA6B(const char* serial_device);
         ~FS_IA6B();
 
         void readValues(IBusChannels* _ch);
